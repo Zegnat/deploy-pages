@@ -1,4 +1,4 @@
-const core = require('@actions/core')
+import * as core from '@actions/core'
 
 // Load variables from Actions runtime
 function getRequiredVars() {
@@ -16,7 +16,7 @@ function getRequiredVars() {
   }
 }
 
-module.exports = function getContext() {
+export default function getContext() {
   const requiredVars = getRequiredVars()
   for (const variable in requiredVars) {
     if (requiredVars[variable] === undefined) {

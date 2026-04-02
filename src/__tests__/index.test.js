@@ -1,6 +1,9 @@
-const process = require('process')
-const cp = require('child_process')
-const path = require('path')
+import process from 'process'
+import cp from 'child_process'
+import path from 'path'
+import { fileURLToPath } from 'url'
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 describe('with all environment variables set', () => {
   beforeEach(() => {

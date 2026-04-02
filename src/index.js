@@ -2,10 +2,10 @@
 // If there's an artifact named `artifact.tar`, it can upload that to actions on its own,
 // without the user having to do the tar process themselves.
 
-const core = require('@actions/core')
+import * as core from '@actions/core'
 
-const { Deployment } = require('./internal/deployment')
-const getContext = require('./internal/context')
+import { Deployment } from './internal/deployment.js'
+import getContext from './internal/context.js'
 
 const deployment = new Deployment()
 

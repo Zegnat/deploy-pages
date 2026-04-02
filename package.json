@@ -2,19 +2,20 @@
   "name": "deploy-pages",
   "version": "0.0.0",
   "description": "Deploy an actions artifact to GitHub Pages",
+  "type": "module",
   "main": "./dist/index.js",
   "dependencies": {
-    "@actions/artifact": "^5.0.3",
-    "@actions/core": "^2.0.3",
-    "@actions/github": "^6.0.1",
-    "@octokit/request-error": "^5.1.1",
+    "@actions/artifact": "^6.2.1",
+    "@actions/core": "^3.0.0",
+    "@actions/github": "^9.0.0",
+    "@octokit/request-error": "^7.1.0",
     "http-status-messages": "^1.1.0"
   },
   "devDependencies": {
     "@vercel/ncc": "^0.38.4",
-    "eslint": "^8.57.1",
+    "eslint": "^9.39.4",
     "eslint-config-prettier": "^10.1.8",
-    "eslint-plugin-github": "^5.1.8",
+    "eslint-plugin-github": "^6.0.0",
     "jest": "^30.3.0",
     "make-coverage-badge": "^1.2.0",
     "nock": "^14.0.11",
@@ -26,10 +27,10 @@
     "coverage-badge": "make-coverage-badge --output-path ./coverage_badge.svg",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "lint": "DEBUG=eslint:cli-engine eslint --fix .",
-    "lint:check": "DEBUG=eslint:cli-engine eslint .",
+    "lint": "eslint --fix .",
+    "lint:check": "eslint .",
     "prepare": "ncc build src/index.js -o dist --source-map --license licenses.txt",
-    "test": "jest"
+    "test": "node --experimental-vm-modules node_modules/.bin/jest"
   },
   "repository": {
     "type": "git",
@@ -60,6 +61,7 @@
         "lines": 70,
         "statements": 70
       }
-    }
+    },
+    "transform": {}
   }
 }

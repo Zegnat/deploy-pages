@@ -1,8 +1,10 @@
-const core = require('@actions/core')
-const github = require('@actions/github')
-const { DefaultArtifactClient } = require('@actions/artifact')
-const { RequestError } = require('@octokit/request-error')
-const HttpStatusMessages = require('http-status-messages')
+import * as core from '@actions/core'
+import * as github from '@actions/github'
+import { DefaultArtifactClient } from '@actions/artifact'
+import { RequestError } from '@octokit/request-error'
+
+// CJS-only: consider replacing with an ESM alternative
+import HttpStatusMessages from 'http-status-messages'
 
 function wrapTwirpResponseLikeOctokit(twirpResponse, requestOptions) {
   // Specific response shape aligned with Octokit
@@ -171,9 +173,4 @@ async function cancelPagesDeployment({ githubToken, deploymentId }) {
   }
 }
 
-module.exports = {
-  getArtifactMetadata,
-  createPagesDeployment,
-  getPagesDeploymentStatus,
-  cancelPagesDeployment
-}
+export { getArtifactMetadata, createPagesDeployment, getPagesDeploymentStatus, cancelPagesDeployment }

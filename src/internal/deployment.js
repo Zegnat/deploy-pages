@@ -1,13 +1,13 @@
-const core = require('@actions/core')
+import * as core from '@actions/core'
 
 // All variables we need from the runtime are loaded here
-const getContext = require('./context')
-const {
+import getContext from './context.js'
+import {
   getArtifactMetadata,
   createPagesDeployment,
   getPagesDeploymentStatus,
   cancelPagesDeployment
-} = require('./api-client')
+} from './api-client.js'
 
 const temporaryErrorStatus = {
   unknown_status: 'Unable to get deployment status.',
@@ -242,4 +242,4 @@ class Deployment {
   }
 }
 
-module.exports = { Deployment, MAX_TIMEOUT, ONE_GIGABYTE, SIZE_LIMIT_DESCRIPTION }
+export { Deployment, MAX_TIMEOUT, ONE_GIGABYTE, SIZE_LIMIT_DESCRIPTION }

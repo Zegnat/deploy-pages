@@ -1,10 +1,46 @@
-const core = require('@actions/core')
-// For mocking network calls with core http (http-client)
-const nock = require('nock')
-// For mocking network calls with native Fetch (octokit)
-const { MockAgent, setGlobalDispatcher } = require('undici')
+import { jest } from '@jest/globals'
 
-const { Deployment, MAX_TIMEOUT, ONE_GIGABYTE, SIZE_LIMIT_DESCRIPTION } = require('../../internal/deployment')
+// Mock @actions/core before importing modules that depend on it.
+// All exports must be provided since transitive dependencies also import from @actions/core.
+const core = {
+  ExitCode: { Success: 0, Failure: 1 },
+  addPath: jest.fn(),
+  debug: jest.fn(),
+  endGroup: jest.fn(),
+  error: jest.fn(),
+  exportVariable: jest.fn(),
+  getBooleanInput: jest.fn(),
+  getIDToken: jest.fn(),
+  getInput: jest.fn(),
+  getMultilineInput: jest.fn(),
+  getState: jest.fn(),
+  group: jest.fn(),
+  info: jest.fn(),
+  isDebug: jest.fn().mockReturnValue(false),
+  notice: jest.fn(),
+  saveState: jest.fn(),
+  setCommandEcho: jest.fn(),
+  setFailed: jest.fn(),
+  setOutput: jest.fn(),
+  setSecret: jest.fn(),
+  startGroup: jest.fn(),
+  summary: {},
+  markdownSummary: {},
+  toPlatformPath: jest.fn(p => p),
+  toPosixPath: jest.fn(p => p),
+  toWin32Path: jest.fn(p => p),
+  warning: jest.fn(),
+  platform: {}
+}
+jest.unstable_mockModule('@actions/core', () => core)
+
+// For mocking network calls with core http (http-client)
+import nock from 'nock'
+// For mocking network calls with native Fetch (octokit)
+import { MockAgent, setGlobalDispatcher } from 'undici'
+
+// Dynamic import after mock is set up
+const { Deployment, MAX_TIMEOUT, ONE_GIGABYTE, SIZE_LIMIT_DESCRIPTION } = await import('../../internal/deployment.js')
 
 const fakeJwt =
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJiNjllMWIxOC1jOGFiLTRhZGQtOGYxOC03MzVlMzVjZGJhZjAiLCJzdWIiOiJyZXBvOnBhcGVyLXNwYS9taW55aTplbnZpcm9ubWVudDpQcm9kdWN0aW9uIiwiYXVkIjoiaHR0cHM6Ly9naXRodWIuY29tL3BhcGVyLXNwYSIsInJlZiI6InJlZnMvaGVhZHMvbWFpbiIsInNoYSI6ImEyODU1MWJmODdiZDk3NTFiMzdiMmM0YjM3M2MxZjU3NjFmYWM2MjYiLCJyZXBvc2l0b3J5IjoicGFwZXItc3BhL21pbnlpIiwicmVwb3NpdG9yeV9vd25lciI6InBhcGVyLXNwYSIsInJ1bl9pZCI6IjE1NDY0NTkzNjQiLCJydW5fbnVtYmVyIjoiMzQiLCJydW5fYXR0ZW1wdCI6IjIiLCJhY3RvciI6IllpTXlzdHkiLCJ3b3JrZmxvdyI6IkNJIiwiaGVhZF9yZWYiOiIiLCJiYXNlX3JlZiI6IiIsImV2ZW50X25hbWUiOiJwdXNoIiwicmVmX3R5cGUiOiJicmFuY2giLCJlbnZpcm9ubWVudCI6IlByb2R1Y3Rpb24iLCJqb2Jfd29ya2Zsb3dfcmVmIjoicGFwZXItc3BhL21pbnlpLy5naXRodWIvd29ya2Zsb3dzL2JsYW5rLnltbEByZWZzL2hlYWRzL21haW4iLCJpc3MiOiJodHRwczovL3Rva2VuLmFjdGlvbnMuZ2l0aHVidXNlcmNvbnRlbnQuY29tIiwibmJmIjoxNjM4ODI4MDI4LCJleHAiOjE2Mzg4Mjg5MjgsImlhdCI6MTYzODgyODYyOH0.1wyupfxu1HGoTyIqatYg0hIxy2-0bMO-yVlmLSMuu2w'
@@ -28,7 +64,7 @@ describe('Deployment', () => {
       'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzY3AiOiJBY3Rpb25zLkV4YW1wbGVTY29wZSBBY3Rpb25zLlJlc3VsdHM6Y2U3ZjU0YzctNjFjNy00YWFlLTg4N2YtMzBkYTQ3NWY1ZjFhOmNhMzk1MDg1LTA0MGEtNTI2Yi0yY2U4LWJkYzg1ZjY5Mjc3NCJ9.l-VcBU1PeNk_lWpOhjWehQlYyjCcY2dp_EMt7Rf06io'
     process.env.ACTIONS_RESULTS_URL = 'https://actions-results-url.biz'
 
-    jest.spyOn(core, 'getInput').mockImplementation(param => {
+    core.getInput.mockImplementation(param => {
       switch (param) {
         case 'artifact_name':
           return 'github-pages'
@@ -41,19 +77,13 @@ describe('Deployment', () => {
       }
     })
 
-    jest.spyOn(core, 'setOutput').mockImplementation(param => {
+    core.setOutput.mockImplementation(param => {
       return param
     })
 
-    jest.spyOn(core, 'setFailed').mockImplementation(param => {
+    core.setFailed.mockImplementation(param => {
       return param
     })
-
-    // Mock error/warning/info/debug
-    jest.spyOn(core, 'error').mockImplementation(jest.fn())
-    jest.spyOn(core, 'warning').mockImplementation(jest.fn())
-    jest.spyOn(core, 'info').mockImplementation(jest.fn())
-    jest.spyOn(core, 'debug').mockImplementation(jest.fn())
 
     // Set up Fetch mocking
     let mockAgent = new MockAgent()
@@ -108,7 +138,7 @@ describe('Deployment', () => {
           { headers: { 'content-type': 'application/json' } }
         )
 
-      core.getIDToken = jest.fn().mockResolvedValue(fakeJwt)
+      core.getIDToken.mockResolvedValue(fakeJwt)
 
       // Create the deployment
       const deployment = new Deployment()
@@ -164,7 +194,7 @@ describe('Deployment', () => {
           { headers: { 'content-type': 'application/json' } }
         )
 
-      core.getIDToken = jest.fn().mockResolvedValue(fakeJwt)
+      core.getIDToken.mockResolvedValue(fakeJwt)
 
       // Return `"true"` for `core.getInput("preview")`
       process.env.INPUT_PREVIEW = 'true'
@@ -527,10 +557,10 @@ describe('Deployment', () => {
           { headers: { 'content-type': 'application/json' } }
         )
 
-      core.getIDToken = jest.fn().mockResolvedValue(fakeJwt)
+      core.getIDToken.mockResolvedValue(fakeJwt)
 
       // Set timeout to greater than max
-      jest.spyOn(core, 'getInput').mockImplementation(param => {
+      core.getInput.mockImplementation(param => {
         switch (param) {
           case 'artifact_name':
             return 'github-pages'
@@ -603,7 +633,7 @@ describe('Deployment', () => {
         })
         .reply(200, { status: 'succeed' }, { headers: { 'content-type': 'application/json' } })
 
-      core.getIDToken = jest.fn().mockResolvedValue(fakeJwt)
+      core.getIDToken.mockResolvedValue(fakeJwt)
 
       // Create the deployment
       const deployment = new Deployment()
@@ -617,6 +647,7 @@ describe('Deployment', () => {
 
     it('fails check when no deployment is found', async () => {
       process.env.GITHUB_SHA = 'valid-build-version'
+
       const deployment = new Deployment()
       await deployment.check()
       expect(core.setFailed).toHaveBeenCalledWith('Deployment not found.')
@@ -662,7 +693,7 @@ describe('Deployment', () => {
           { headers: { 'content-type': 'application/json' } }
         )
 
-      core.getIDToken = jest.fn().mockResolvedValue(fakeJwt)
+      core.getIDToken.mockResolvedValue(fakeJwt)
 
       const deployment = new Deployment()
       await deployment.create(fakeJwt)
@@ -727,10 +758,10 @@ describe('Deployment', () => {
         })
         .reply(200, {}, { headers: { 'content-type': 'application/json' } })
 
-      core.getIDToken = jest.fn().mockResolvedValue(fakeJwt)
+      core.getIDToken.mockResolvedValue(fakeJwt)
 
       // Set timeout to greater than max
-      jest.spyOn(core, 'getInput').mockImplementation(param => {
+      core.getInput.mockImplementation(param => {
         switch (param) {
           case 'artifact_name':
             return 'github-pages'
@@ -815,10 +846,10 @@ describe('Deployment', () => {
         })
         .reply(200, {}, { headers: { 'content-type': 'application/json' } })
 
-      core.getIDToken = jest.fn().mockResolvedValue(fakeJwt)
+      core.getIDToken.mockResolvedValue(fakeJwt)
 
       // Set timeout to greater than max
-      jest.spyOn(core, 'getInput').mockImplementation(param => {
+      core.getInput.mockImplementation(param => {
         switch (param) {
           case 'artifact_name':
             return 'github-pages'
@@ -900,10 +931,10 @@ describe('Deployment', () => {
         })
         .reply(200, { status: 'succeed' }, { headers: { 'content-type': 'application/json' } })
 
-      core.getIDToken = jest.fn().mockResolvedValue(fakeJwt)
+      core.getIDToken.mockResolvedValue(fakeJwt)
 
       // Set timeout to greater than max
-      jest.spyOn(core, 'getInput').mockImplementation(param => {
+      core.getInput.mockImplementation(param => {
         switch (param) {
           case 'artifact_name':
             return 'github-pages'
@@ -988,7 +1019,7 @@ describe('Deployment', () => {
         })
         .reply(200, {}, { headers: { 'content-type': 'application/json' } })
 
-      core.getIDToken = jest.fn().mockResolvedValue(fakeJwt)
+      core.getIDToken.mockResolvedValue(fakeJwt)
 
       // Create the deployment
       const deployment = new Deployment()
@@ -1061,7 +1092,7 @@ describe('Deployment', () => {
         })
         .reply(500, {}, { headers: { 'content-type': 'application/json' } })
 
-      core.getIDToken = jest.fn().mockResolvedValue(fakeJwt)
+      core.getIDToken.mockResolvedValue(fakeJwt)
 
       // Create the deployment
       const deployment = new Deployment()
