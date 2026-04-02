@@ -195,7 +195,7 @@ describe('Deployment', () => {
       expect(core.error).toHaveBeenNthCalledWith(
         1,
         'Listing artifact metadata failed',
-        new Error('Failed to ListArtifacts: Received non-retryable error: Failed request: (400) null: yikes!')
+        new Error('Failed to ListArtifacts: Received non-retryable error: Failed request: (400) Bad Request: yikes!')
       )
       expect(core.error).toHaveBeenNthCalledWith(
         2,
@@ -422,7 +422,7 @@ describe('Deployment', () => {
       expect(core.error).toHaveBeenNthCalledWith(
         1,
         'Listing artifact metadata failed',
-        new Error('Failed to ListArtifacts: Received non-retryable error: Failed request: (501) null: oh no')
+        new Error('Failed to ListArtifacts: Received non-retryable error: Failed request: (501) Not Implemented: oh no')
       )
       expect(core.error).toHaveBeenNthCalledWith(
         2,
@@ -477,7 +477,7 @@ describe('Deployment', () => {
       const deployment = new Deployment()
       await deployment.create(fakeJwt)
 
-      expect(core.warning).toBeCalledWith(
+      expect(core.warning).toHaveBeenCalledWith(
         `Uploaded artifact size of ${artifactSize} bytes exceeds the allowed size of ${SIZE_LIMIT_DESCRIPTION}. Deployment might fail.`
       )
       expect(core.setFailed).not.toHaveBeenCalled()
@@ -548,7 +548,7 @@ describe('Deployment', () => {
       const deployment = new Deployment()
       await deployment.create(fakeJwt)
 
-      expect(core.warning).toBeCalledWith(
+      expect(core.warning).toHaveBeenCalledWith(
         `Warning: timeout value is greater than the allowed maximum - timeout set to the maximum of ${MAX_TIMEOUT} milliseconds.`
       )
       twirpScope.done()
@@ -610,7 +610,7 @@ describe('Deployment', () => {
       await deployment.create(fakeJwt)
       await deployment.check()
 
-      expect(core.setOutput).toBeCalledWith('status', 'succeed')
+      expect(core.setOutput).toHaveBeenCalledWith('status', 'succeed')
       expect(core.info).toHaveBeenLastCalledWith('Reported success!')
       twirpScope.done()
     })
@@ -619,7 +619,7 @@ describe('Deployment', () => {
       process.env.GITHUB_SHA = 'valid-build-version'
       const deployment = new Deployment()
       await deployment.check()
-      expect(core.setFailed).toBeCalledWith('Deployment not found.')
+      expect(core.setFailed).toHaveBeenCalledWith('Deployment not found.')
     })
 
     it('exits early when deployment is not in progress', async () => {
@@ -668,7 +668,7 @@ describe('Deployment', () => {
       await deployment.create(fakeJwt)
       deployment.deploymentInfo.pending = false
       await deployment.check()
-      expect(core.setFailed).toBeCalledWith('Unable to get deployment status.')
+      expect(core.setFailed).toHaveBeenCalledWith('Unable to get deployment status.')
       twirpScope.done()
     })
 
@@ -763,8 +763,8 @@ describe('Deployment', () => {
       nowSpy.mockRestore()
 
       expect(deployment.timeout).toEqual(MAX_TIMEOUT)
-      expect(core.error).toBeCalledWith('Timeout reached, aborting!')
-      expect(core.setFailed).toBeCalledWith('Timeout reached, aborting!')
+      expect(core.error).toHaveBeenCalledWith('Timeout reached, aborting!')
+      expect(core.setFailed).toHaveBeenCalledWith('Timeout reached, aborting!')
       twirpScope.done()
     })
 
@@ -848,8 +848,8 @@ describe('Deployment', () => {
       await deployment.check()
 
       expect(deployment.timeout).toEqual(42)
-      expect(core.error).toBeCalledWith('Timeout reached, aborting!')
-      expect(core.setFailed).toBeCalledWith('Timeout reached, aborting!')
+      expect(core.error).toHaveBeenCalledWith('Timeout reached, aborting!')
+      expect(core.setFailed).toHaveBeenCalledWith('Timeout reached, aborting!')
       twirpScope.done()
     })
 
@@ -933,8 +933,8 @@ describe('Deployment', () => {
       await deployment.check()
 
       expect(deployment.timeout).toEqual(42)
-      expect(core.error).not.toBeCalled()
-      expect(core.setOutput).toBeCalledWith('status', 'succeed')
+      expect(core.error).not.toHaveBeenCalled()
+      expect(core.setOutput).toHaveBeenCalledWith('status', 'succeed')
       expect(core.info).toHaveBeenLastCalledWith('Reported success!')
       twirpScope.done()
     })
